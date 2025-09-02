@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>База данных пользователей</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            color: #2575fc;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #666;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .search-box {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 30px;
+            width: 300px;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s;
+        }
+        
+        .search-box:focus {
+            border-color: #2575fc;
+            box-shadow: 0 0 0 2px rgba(37, 117, 252, 0.2);
+        }
+        
+        .stats {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+        }
+        
+        .stat-item {
+            flex: 1;
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #2575fc;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        th {
+            background-color: #2575fc;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        th:hover {
+            background-color: #1c64e0;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        tr:hover {
+            background-color: #f1f7ff;
+        }
+        
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #555;
+            margin-right: 10px;
+        }
+        
+        .user-cell {
+            display: flex;
+            align-items: center;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+            gap: 10px;
+        }
+        
+        .pagination button {
+            padding: 10px 15px;
+            background: #2575fc;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .pagination button:hover {
+            background: #1c64e0;
+        }
+        
+        .pagination button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            th, td {
+                padding: 10px;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+            
+            .search-box {
+                width: 100%;
+            }
+            
+            .stats {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>База данных пользователей</h1>
+            <p class="subtitle">Синтетические данные для тестирования и разработки</p>
+        </header>
+        
+        <div class="controls">
+            <input type="text" class="search-box" placeholder="Поиск пользователей..." id="searchInput">
+        </div>
+        
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-value">50</div>
+                <div class="stat-label">Всего пользователей</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">7</div>
+                <div class="stat-label">Городов</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">32</div>
+                <div class="stat-label">Мужчин</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">18</div>
+                <div class="stat-label">Женщин</div>
+            </div>
+        </div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th onclick="sortTable(0)">ID ↗</th>
+                    <th onclick="sortTable(1)">Пользователь ↗</th>
+                    <th onclick="sortTable(2)">Email ↗</th>
+                    <th onclick="sortTable(3)">Телефон ↗</th>
+                    <th onclick="sortTable(4)">Город ↗</th>
+                </tr>
+            </thead>
+            <tbody id="userTable">
+                <tr>
+                    <td>1</td>
+                    <td><div class="user-cell"><div class="avatar">ИП</div>Иван Петров</div></td>
+                    <td>ivan.petrov@example.com</td>
+                    <td>+7 (123) 456-78-90</td>
+                    <td>Москва</td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td><div class="user-cell"><div class="avatar">МС</div>Мария Сидорова</div></td>
+                    <td>maria.sidorova@example.com</td>
+                    <td>+7 (234) 567-89-01</td>
+                    <td>Санкт-Петербург</td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td><div class="user-cell"><div class="avatar">АИ</div>Алексей Иванов</div></td>
+                    <td>alexey.ivanov@example.com</td>
+                    <td>+7 (345) 678-90-12</td>
+                    <td>Новосибирск</td>
+                </tr>
+                <tr>
+                    <td>4</td>
+                    <td><div class="user-cell"><div class="avatar">ЕС</div>Екатерина Смирнова</div></td>
+                    <td>ekaterina.smirnova@example.com</td>
+                    <td>+7 (456) 789-01-23</td>
+                    <td>Екатеринбург</td>
+                </tr>
+                <tr>
+                    <td>5</td>
+                    <td><div class="user-cell"><div class="avatar">ДК</div>Дмитрий Кузнецов</div></td>
+                    <td>dmitry.kuznetsov@example.com</td>
+                    <td>+7 (567) 890-12-34</td>
+                    <td>Казань</td>
+                </tr>
+                <tr>
+                    <td>6</td>
+                    <td><div class="user-cell"><div class="avatar">АН</div>Анна Новикова</div></td>
+                    <td>anna.novikova@example.com</td>
+                    <td>+7 (678) 901-23-45</td>
+                    <td>Москва</td>
+                </tr>
+                <tr>
+                    <td>7</td>
+                    <td><div class="user-cell"><div class="avatar">СВ</div>Сергей Васильев</div></td>
+                    <td>sergey.vasilyev@example.com</td>
+                    <td>+7 (789) 012-34-56</td>
+                    <td>Санкт-Петербург</td>
+                </tr>
+                <tr>
+                    <td>8</td>
+                    <td><div class="user-cell"><div class="avatar">ОЛ</div>Ольга Лебедева</div></td>
+                    <td>olga.lebedeva@example.com</td>
+                    <td>+7 (890) 123-45-67</td>
+                    <td>Новосибирск</td>
+                </tr>
+                <tr>
+                    <td>9</td>
+                    <td><div class="user-cell"><div class="avatar">ПМ</div>Павел Морозов</div></td>
+                    <td>pavel.morozov@example.com</td>
+                    <td>+7 (901) 234-56-78</td>
+                    <td>Екатеринбург</td>
+                </tr>
+                <tr>
+                    <td>10</td>
+                    <td><div class="user-cell"><div class="avatar">ИЗ</div>Ирина Зайцева</div></td>
+                    <td>irina.zaytseva@example.com</td>
+                    <td>+7 (012) 345-67-89</td>
+                    <td>Казань</td>
+                </tr>
+                <tr>
+                    <td>11</td>
+                    <td><div class="user-cell"><div class="avatar">НК</div>Никита Козлов</div></td>
+                    <td>nikita.kozlov@example.com</td>
+                    <td>+7 (123) 456-78-91</td>
+                    <td>Москва</td>
+                </tr>
+                <tr>
+                    <td>12</td>
+                    <td><div class="user-cell"><div class="avatar">ТИ</div>Татьяна Ильина</div></td>
+                    <td>tatiana.ilina@example.com</td>
+                    <td>+7 (234) 567-89-12</td>
+                    <td>Санкт-Петербург</td>
+                </tr>
+                <tr>
+                    <td>13</td>
+                    <td><div class="user-cell"><div class="avatar">АП</div>Андрей Павлов</div></td>
+                    <td>andrey.pavlov@example.com</td>
+                    <td>+7 (345) 678-90-13</td>
+                    <td>Новосибирск</td>
+                </tr>
+                <tr>
+                    <td>14</td>
+                    <td><div class="user-cell"><div class="avatar">ЕМ</div>Елена Михайлова</div></td>
+                    <td>elena.mikhailova@example.com</td>
+                    <td>+7 (456) 789-01-24</td>
+                    <td>Екатеринбург</td>
+                </tr>
+                <tr>
+                    <td>15</td>
+                    <td><div class="user-cell"><div class="avatar">МН</div>Максим Николаев</div></td>
+                    <td>maxim.nikolaev@example.com</td>
+                    <td>+7 (567) 890-12-35</td>
+                    <td>Казань</td>
+                </tr>
+                <tr>
+                    <td>16</td>
+                    <td><div class="user-cell"><div class="avatar">ЮГ</div>Юлия Громова</div></td>
+                    <td>yulia.gromova@example.com</td>
+                    <td>+7 (678) 901-23-46</td>
+                    <td>Москва</td>
+                </tr>
+                <tr>
+                    <td>17</td>
+                    <td><div class="user-cell"><div class="avatar">АС</div>Артём Соколов</div></td>
+                    <td>artem.sokolov@example.com</td>
+                    <td>+7 (789) 012-34-57</td>
+                    <td>Санкт-Петербург</td>
+                </tr>
+                <tr>
+                    <td>18</td>
+                    <td><div class="user-cell"><div class="avatar">ВВ</div>Вадим Воробьёв</div></td>
+                    <td>vadim.vorobyov@example.com</td>
+                    <td>+7 (890) 123-45-68</td>
+                    <td>Новосибирск</td>
+                </tr>
+                <tr>
+                    <td>19</td>
+                    <td><div class="user-cell"><div class="avatar">ЛФ</div>Людмила Фёдорова</div></td>
+                    <td>lyudmila.fedorova@example.com</td>
+                    <td>+7 (901) 234-56-79</td>
+                    <td>Екатеринбург</td>
+                </tr>
+                <tr>
+                    <td>20</td>
+                    <td><div class="user-cell"><div class="avatar">ДА</div>Денис Алексеев</div></td>
+                    <td>denis.alekseev@example.com</td>
+                    <td>+7 (012) 345-67-90</td>
+                    <td>Казань</td>
+                </tr>
+                <tr>
+                    <td>21</td>
+                    <td><div class="user-cell"><div class="avatar">КС</div>Кирилл Степанов</div></td>
+                    <td>kirill.stepanov@example.com</td>
+                    <td>+7 (123) 456-78-92</td>
+                    <td>Москва</td>
+                </tr>
+                <tr>
+                    <td>22</td>
+                    <td><div class="user-cell"><div class="avatar">АО</div>Алина Орлова</div></td>
+                    <td>alina.orlova@example.com</td>
+                    <td>+7 (234) 567-89-13</td>
+                    <td>Санкт-Петербург</td>
+                </tr>
+                <tr>
+                    <td>23</td>
+                    <td><div class="user-cell"><div class="avatar">РЖ</div>Роман Жуков</div></td>
+                    <td>roman.zhukov@example.com</td>
+                    <td>+7 (345) 678-90-14</td>
+                    <td>Новосибирск</td>
+                </tr>
+                <tr>
+                    <td>24</td>
+                    <td><div class="user-cell"><div class="avatar">НВ</div>Надежда Виноградова</div></td>
+                    <td>nadezhda.vinogradova@example.com</td>
+                    <td>+7 (456) 789-01-25</td>
+                    <td>Екатеринбург</td>
+                </tr>
+                <tr>
+                    <td>25</td>
+                    <td><div class="user-cell"><div class="avatar">ВК</div>Виталий Кудрявцев</div></td>
+                    <td>vitaly.kudryavtsev@example.com</td>
+                    <td>+7 (567) 890-12-36</td>
+                    <td>Казань</td>
+                </tr>
+                <tr>
+                    <td>26</td>
+                    <td><div class="user-cell"><div class="avatar">СС</div>Светлана Савельева</div></td>
+                    <td>svetlana.savelyeva@example.com</td>
+                    <td>+7 (678) 901-23-47</td>
+                    <td>Москва</td>
+                </tr>
+                <tr>
+                    <td>27</td>
+                    <td><div class="user-cell"><div class="avatar">ГТ</div>Григорий Тихонов</div></td>
+                    <td>grigory.tikhonov@example.com</td>
+                    <td>+7 (789) 012-34-58</td>
+                    <td>Санкт-Петербург</td>
+                </tr>
+                <tr>
+                    <td>28</td>
+                    <td><div class="user-cell"><div class="avatar">ММ</div>Маргарита Макарова</div></td>
+                    <td>margarita.makarova@example.com</td>
+                    <td>+7 (890) 123-45-69</td>
+                    <td>Новосибирск</td>
+                </tr>
+                <tr>
+                    <td>29</td>
+                    <td><div class="user-cell"><div class="avatar">ИБ</div>Игорь Белов</div></td>
+                    <td>igor.belov@example.com</td>
+                    <td>+7 (901) 234-56-80</td>
+                    <td>Екатеринбург</td>
+                </tr>
+                <tr>
+                    <td>30</td>
+                    <td><div class="user-cell"><div class="avatar">ВА</div>Вероника Андреева</div></td>
+                    <td>veronika.andreeva@example.com</td>
+                    <td>+7 (012) 345-67-91</td>
+                    <td>Казань</td>
+                </tr>
+                <tr>
+                    <td>31</td>
+                    <td><div class="user-cell"><div class="avatar">ФД</div>Фёдор Дмитриев</div></td>
+                    <td>fedor.dmitriev@example.com</td>
+                    <td>+7 (123) 456-78-93</td>
+                    <td>Москва</td>
+                </tr>
+                <tr>
+                    <td>32</td>
+                    <td><div class="user-cell"><div class="avatar">ЭК</div>Элина Кузнецова</div></td>
+                    <td>elina.kuznetsova@example.com</td>
+                    <td>+7 (234) 567-89-14</td>
+                    <td>Санкт-Петербург</td>
+                </tr>
+                <tr>
+                    <td>33</td>
+                    <td><div class="user-cell"><div class="avatar">СТ</div>Станислав Тарасов</div></td>
+                    <td>stanislav.tarasov@example.com</td>
+                    <td>+7 (345) 678-90-15</td>
+                    <td>Новосибирск</td>
+                </tr>
+                <tr>
+                    <td>34</td>
+                    <td><div class="user-cell"><div class="avatar">ЛЗ</div>Лариса Зыкова</div></td>
+                    <td>larisa.zykova@example.com</td>
+                    <td>+7 (456) 789-01-26</td>
+                    <td>Екатеринбург</td>
+                </tr>
+                <tr>
+                    <td>35</td>
+                    <td><div class="user-cell"><div class="avatar">ВА</div>Василий Афанасьев</div></td>
+                    <td>vasily.afanasyev@example.com</td>
+                    <td>+7 (567) 890-12-37</td>
+                    <td>Казань</td>
+                </tr>
+                <tr>
+                    <td>36</td>
+                    <td><div class="user-cell"><div class="avatar">АР</div>Ангелина Романова</div></td>
+                    <td>angelina.romanova@example.com</td>
+                    <td>+7 (678) 901-23-48</td>
+                    <td>Москва</td>
+                </tr>
+                <tr>
+                    <td>37</td>
+                    <td><div class="user-cell"><div class="avatar">БШ</div>Борис Шестаков</div></td>
+                    <td>boris.shestakov@example.com</td>
+                    <td>+7 (789) 012-34-59</td>
+                    <td>Санкт-Петербург</td>
+                </tr>
+                <tr>
+                    <td>38</td>
+                    <td><div class="user-cell"><div class="avatar">ЗП</div>Зоя Прохорова</div></td>
+                    <td>zoya.prokhorova@example.com</td>
+                    <td>+7 (890) 123-45-70</td>
+                    <td>Новосибирск</td>
+                </tr>
+                <tr>
+                    <td>39</td>
+                    <td><div class="user-cell"><div class="avatar">ГН</div>Геннадий Никитин</div></td>
+                    <td>gennady.nikitin@example.com</td>
+                    <td>+7 (901) 234-56-81</td>
+                    <td>Екатеринбург</td>
+                </tr>
+                <tr>
+                    <td>40</td>
+                    <td><div class="user-cell"><div class="avatar">УС</div>Ульяна Семёнова</div></td>
+                    <td>ulyana.semenova@example.com</td>
+                    <td>+7 (012) 345-67-92</td>
+                    <td>Казань</td>
+                </tr>
+                <tr>
+                    <td>41</td>
+                    <td><div class="user-cell"><div class="avatar">ЯП</div>Ярослав Пономарёв</div></td>
+                    <td>yaroslav.ponomarev@example.com</td>
+                    <td>+7 (123) 456-78-94</td>
+                    <td>Москва</td>
+                </tr>
+                <tr>
+                    <td>42</td>
+                    <td><div class="user-cell"><div class="avatar">РЕ</div>Регина Ефимова</div></td>
+                    <td>regina.efimova@example.com</td>
+                    <td>+7 (234) 567-89-15</td>
+                    <td>Санкт-Петербург</td>
+                </tr>
+                <tr>
+                    <td>43</td>
+                    <td><div class="user-cell"><div class="avatar">ВМ</div>Владислав Маслов</div></td>
+                    <td>vladislav.maslov@example.com</td>
+                    <td>+7 (345) 678-90-16</td>
+                    <td>Новосибирск</td>
+                </tr>
+                <tr>
+                    <td>44</td>
+                    <td><div class="user-cell"><div class="avatar">КГ</div>Ксения Герасимова</div></td>
+                    <td>ksenia.gerasimova@example.com</td>
+                    <td>+7 (456) 789-01-27</td>
+                    <td>Екатеринбург</td>
+                </tr>
+                <tr>
+                    <td>45</td>
+                    <td><div class="user-cell"><div class="avatar">ТК</div>Тимур Крылов</div></td>
+                    <td>timur.krylov@example.com</td>
+                    <td>+7 (567) 890-12-38</td>
+                    <td>Казань</td>
+                </tr>
+                <tr>
+                    <td>46</td>
+                    <td><div class="user-cell"><div class="avatar">ЛЮ</div>Лидия Юдина</div></td>
+                    <td>lidiya.yudina@example.com</td>
+                    <td>+7 (678) 901-23-49</td>
+                    <td>Москва</td>
+                </tr>
+                <tr>
+                    <td>47</td>
+                    <td><div class="user-cell"><div class="avatar">АГ</div>Аркадий Горбунов</div></td>
+                    <td>arkadiy.gorbunov@example.com</td>
+                    <td>+7 (789) 012-34-60</td>
+                    <td>Санкт-Петербург</td>
+                </tr>
+                <tr>
+                    <td>48</td>
+                    <td><div class="user-cell"><div class="avatar">НЕ</div>Нелли Егорова</div></td>
+                    <td>nelli.egorova@example.com</td>
+                    <td>+7 (890) 123-45-71</td>
+                    <td>Новосибирск</td>
+                </tr>
+                <tr>
+                    <td>49</td>
+                    <td><div class="user-cell"><div class="avatar">ВЧ</div>Всеволод Чернов</div></td>
+                    <td>vsevolod.chernov@example.com</td>
+                    <td>+7 (901) 234-56-82</td>
+                    <td>Екатеринбург</td>
+                </tr>
+                <tr>
+                    <td>50</td>
+                    <td><div class="user-cell"><div class="avatar">ЖМ</div>Жанна Медведева</div></td>
+                    <td>zhanna.medvedeva@example.com</td>
+                    <td>+7 (012) 345-67-93</td>
+                    <td>Казань</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="pagination">
+            <button onclick="changePage('prev')" disabled>Назад</button>
+            <span style="margin: 0 15px; line-height: 35px;">Страница 1 из 1</span>
+            <button onclick="changePage('next')" disabled>Вперед</button>
+        </div>
+        
+        <footer>
+            <p>© 2023 База данных пользователей. Все данные являются синтетическими и созданы для тестовых целей.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Простая функция для поиска
+        document.getElementById('searchInput').addEventListener('keyup', function() {
+            const searchText = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#userTable tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchText)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+        
+        // Функция для сортировки таблицы
+        function sortTable(columnIndex) {
+            // В реальном проекте здесь была бы реализация сортировки
+            alert('Функция сортировки будет реализована в будущем');
+        }
+        
+        // Функция для пагинации
+        function changePage(direction) {
+            // В реальном проекте здесь была бы реализация пагинации
+            alert('Функция пагинации будет реализована в будущем');
+        }
+    </script>
+</body>
+</html>
